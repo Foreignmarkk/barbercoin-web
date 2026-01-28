@@ -1,84 +1,97 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>BarberCoin Pay</title>
+
   <style>
-    body { font-family: -apple-system, system-ui, Arial; margin:0; background:#0b0b0f; color:#fff; }
-    .wrap { max-width:420px; margin:0 auto; padding:24px; }
-    .card { background:#151523; border:1px solid #26263a; border-radius:16px; padding:18px; }
-    h1 { margin:0 0 8px; font-size:28px; }
-    p { margin:0 0 16px; opacity:.85; }
-    input { width:100%; padding:14px; border-radius:12px; border:1px solid #2b2b44; background:#0f0f1a; color:#fff; font-size:16px; }
-    button { width:100%; padding:14px; border-radius:12px; border:none; margin-top:12px; background:#2f6bff; color:#fff; font-size:16px; font-weight:700; }
-    button:disabled { opacity:.6; }
-    .msg { margin-top:12px; font-size:14px; opacity:.9; }
-    .err { color:#ff6b6b; }
-    .ok  { color:#58ffb0; }
-    .tiny { margin-top:18px; font-size:12px; opacity:.65; }
+    body { font-family: system-ui, -apple-system, Arial; background:#0b1020; color:#fff; display:flex; min-height:100vh; align-items:center; justify-content:center; padding:24px; }
+    .card { width:100%; max-width:420px; background:#121a33; border:1px solid #24305a; border-radius:14px; padding:18px; }
+    h1 { margin:0 0 8px; font-size:22px; }
+    p { margin:0 0 14px; opacity:.85; }
+    input { width:100%; padding:12px; border-radius:10px; border:1px solid #2b3a6b; background:#0e1630; color:#fff; font-size:16px; box-sizing:border-box; }
+    button { width:100%; margin-top:12px; padding:12px; border-radius:10px; border:0; background:#2f6bff; color:#fff; font-size:16px; font-weight:700; cursor:pointer; }
+    button:disabled { opacity:.6; cursor:not-allowed; }
+    .small { margin-top:12px; font-size:12px; opacity:.7; }
+    .status { margin-top:10px; font-size:13px; opacity:.9; }
   </style>
 </head>
-<body>
-  <div class="wrap">
-    <h1>BarberCoin Pay</h1>
-    <p>Enter an amount and generate a checkout link from the BarberCoin backend.</p>
 
-    <div class="card">
-      <label>Amount (USD)</label>
-      <input id="amt" inputmode="numeric" placeholder="60" value="60" />
-      <button id="payBtn">Pay Now</button>
-      <div id="msg" class="msg"></div>
-      <div class="tiny">Backend: <span id="base"></span></div>
-    </div>
+<body>
+  <div class="card">
+    <h1>BarberCoin Pay</h1>
+    <p>Enter an amount to generate a Stripe checkout link.</p>
+
+    <label for="amount">Amount (USD)</label>
+    <input id="amount" type="number" inputmode="decimal" placeholder="5" />
+
+    <button id="payNow">Pay Now</button>
+
+    <div id="status" class="status"></div>
+    <div class="small" id="backendText"></div>
   </div>
 
-<script>
-  const BASE_URL = "https://usbarber-backend.onrender.com";
-  document.getElementById("base").textContent = BASE_URL;
+  <script>
+    // ✅ This is your live backend on Render:
+    const BASE_URL = "https://usbarber-backend.onrender.com";
 
-  const msg = (text, cls="") => {
-    const el = document.getElementById("msg");
-    el.className = "msg " + cls;
-    el.textContent = text;
-  };
+    const amountInput = document.getElementById("amount");
+    const btn = document.getElementById("payNow");
+    const statusEl = document.getElementById("status");
+    const backendText = document.getElementById("backendText");
 
-  document.getElementById("payBtn").onclick = async () => {
-    msg("");
-    const btn = document.getElementById("payBtn");
-    btn.disabled = true;
+    backendText.textContent = "Backend: " + BASE_URL;
 
-    try {
-      const dollars = parseInt(document.getElementById("amt").value || "0", 10);
-      if (!dollars || dollars <= 0) { msg("Enter a valid amount (ex: 60).", "err"); return; }
+    function setStatus(msg) { statusEl.textContent = msg; }
 
-      msg("Creating checkout…", "");
-      const body = {
-        amount_cents: dollars * 100,
-        currency: "usd",
-        description: "US Barber Test Haircut",
-        success_url: "https://google.com",
-        cancel_url: "https://google.com"
-      };
+    btn.addEventListener("click", async () => {
+      const dollars = Number(amountInput.value);
 
-      const r = await fetch(`${BASE_URL}/payments/checkout`, {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(body)
-      });
+      if (!dollars || dollars <= 0) {
+        setStatus("Enter a valid amount.");
+        return;
+      }
 
-      const data = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(JSON.stringify(data));
+      const amount_cents = Math.round(dollars * 100);
 
-      if (!data.checkout_url) throw new Error("Missing checkout_url from server.");
-      msg("Opening checkout…", "ok");
-      window.location.href = data.checkout_url;
-    } catch (e) {
-      msg("Error: " + (e.message || e), "err");
-    } finally {
-      btn.disabled = false;
-    }
-  };
-</script>
+      // Redirect back to GitHub Pages (success/cancel)
+      const basePath = window.location.pathname.endsWith("/")
+        ? window.location.pathname
+        : window.location.pathname.replace(/\/[^/]*$/, "/");
+
+      const success_url = `${window.location.origin}${basePath}success.html`;
+      const cancel_url  = `${window.location.origin}${basePath}cancel.html`;
+
+      btn.disabled = true;
+      setStatus("Creating checkout...");
+
+      try {
+        const res = await fetch(`${BASE_URL}/payments/checkout`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount_cents,
+            currency: "usd",
+            description: "BarberCoin Pay",
+            success_url,
+            cancel_url
+          })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "Checkout failed");
+        if (!data.checkout_url) throw new Error("Missing checkout_url");
+
+        setStatus("Opening checkout...");
+        window.location.href = data.checkout_url;
+
+      } catch (err) {
+        setStatus("Error: " + err.message);
+        btn.disabled = false;
+      }
+    });
+  </script>
 </body>
 </html>
