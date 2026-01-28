@@ -1,11 +1,91 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title>Payment Cancelled</title>
-</head>
-<body>
-  <h1>❌ Payment Cancelled</h1>
-  <p>Your payment was not completed.</p>
-  <a href="/">Try Again</a>
-</body>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Payment Cancelled</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, Helvetica, Arial, sans-serif;
+        background: #0f172a;
+        color: #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+      }
+
+      .card {
+        background: #020617;
+        border-radius: 16px;
+        padding: 40px 28px;
+        max-width: 420px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      }
+
+      h1 {
+        font-size: 28px;
+        margin-bottom: 12px;
+      }
+
+      p {
+        font-size: 16px;
+        line-height: 1.5;
+        color: #9ca3af;
+        margin-bottom: 28px;
+      }
+
+      .icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+      }
+
+      a {
+        display: inline-block;
+        padding: 14px 24px;
+        background: #dc2626;
+        color: #fff;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background 0.2s ease;
+      }
+
+      a:hover {
+        background: #b91c1c;
+      }
+
+      .secondary {
+        display: block;
+        margin-top: 16px;
+        font-size: 14px;
+        color: #9ca3af;
+        text-decoration: none;
+      }
+
+      .secondary:hover {
+        color: #e5e7eb;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="card">
+      <div class="icon">⚠️</div>
+      <h1>Payment Cancelled</h1>
+      <p>
+        Your payment was not completed. No charges were made.
+        <br />
+        You can try again whenever you’re ready.
+      </p>
+
+      <a href="index.html">Try Again</a>
+      <a class="secondary" href="index.html">Return to BarberCoin</a>
+    </div>
+  </body>
 </html>
